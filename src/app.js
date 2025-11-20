@@ -2,11 +2,12 @@ const express = require('express');
 const adminauth = require('../middleware/auth');
 const connectDB = require('./config/database')
 const app = express();
-
-app.use("/admin", adminauth);
-app.get("/admin", (req, res) => {
-    res.send("I am admin");
-})
+const User = require('./models/user')
+app.use(express.json());
+// app.use("/admin", adminauth);
+// app.get("/admin", (req, res) => {
+//     res.send("I am admin");
+// })
 
 // app.get("/admin/delete", (req, res) => {
 //     res.send("delete a user");
@@ -57,15 +58,25 @@ app.get("/admin", (req, res) => {
 // the above function is call request handler function
 
 
-app.get("/user", (req, res, next) => {
-    console.log("Handling the route user 2!");
-    // res.send("2nd Route Handler");
-    next()
-})
+// app.get("/user", (req, res, next) => {
+//     console.log("Handling the route user 2!");
+//     // res.send("2nd Route Handler");
+//     next()
+// })
 
-app.get("/user", (req, res, next) => {
-    console.log("Handling the route user!");
-    // next();
+// app.get("/user", (req, res, next) => {
+//     console.log("Handling the route user!");
+//     // next();
+// })
+
+app.post("/signup", async (req, res) => {
+    const user = new User(req.body);
+    try {
+        await user.save();
+        res.send("User Added Successfully")
+    } catch (err) {
+        res.status(400).send("Error saving the user:" + err.message)
+    }
 })
 connectDB().then(() => {
     console.log("Database connection established")
