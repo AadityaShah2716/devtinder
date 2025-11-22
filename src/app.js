@@ -2,7 +2,8 @@ const express = require('express');
 const adminauth = require('../middleware/auth');
 const connectDB = require('./config/database')
 const app = express();
-const User = require('./models/user')
+const User = require('./models/user');
+const { use } = require('react');
 app.use(express.json());
 // app.use("/admin", adminauth);
 // app.get("/admin", (req, res) => {
@@ -76,6 +77,58 @@ app.post("/signup", async (req, res) => {
         res.send("User Added Successfully")
     } catch (err) {
         res.status(400).send("Error saving the user:" + err.message)
+    }
+})
+
+app.get('/user', async (req, res) => {
+    const useremail = req?.body?.emailId;
+    try {
+        const user = await User.findOne({ emailId: useremail });
+        if (!user) {
+            res.status(404).send("User Not found");
+        }
+        else {
+            res.send(user);
+        }
+
+    } catch (err) {
+        res.status(400).send("Error saving the user:" + err.message)
+    }
+})
+
+
+app.get('/feed', async (req, res) => {
+    try {
+        const users = await User.find({});
+        if (users.length === 0) {
+            res.status(404).send("User Not Found");
+        }
+        else {
+            res.send(users);
+        }
+    } catch (err) {
+        res.status(400).send("Error saving the feed:" + err.message);
+    }
+})
+
+app.delete('/user', async (req, res) => {
+    const userId = req.body.userId;
+    try {
+        const user = await User.findByIdAndDelete(userId);
+        res.send("User deleted successfully");
+    } catch (err) {
+        res.status(400).send("Something went wrong");
+    }
+})
+app.patch('/user', async (req, res) => {
+    const emailId = req?.body?.emailId;
+    const data = req.body;
+    try {
+        const user = await User.findOneAndUpdate({ emailId: emailId }, data, { new: true });
+        console.log("user", user);
+        res.send("User updated successfully");
+    } catch (error) {
+        res.status(400).send("Something went wrong", error?.message);
     }
 })
 connectDB().then(() => {
