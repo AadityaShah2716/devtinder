@@ -120,15 +120,27 @@ app.delete('/user', async (req, res) => {
         res.status(400).send("Something went wrong");
     }
 })
-app.patch('/user', async (req, res) => {
-    const emailId = req?.body?.emailId;
+app.patch('/user/:userId', async (req, res) => {
+    const userId = req?.params?.userId;
     const data = req.body;
+
     try {
-        const user = await User.findOneAndUpdate({ emailId: emailId }, data, { new: true });
+        const ALLOWED_FIELDS = ["photoUrl", "about", "skills"];
+        const isupdateAllowed = Object.keys(data).every((k) => ALLOWED_FIELDS.includes(k));
+        if (!isupdateAllowed) {
+            throw new Error("Update not allowed")
+        }
+        if (data?.skills?.length > 15) {
+            throw new Error("Skill is allowed only 15");
+        }
+        const user = await User.findByIdAndUpdate({ _id: userId }, data, {
+            returnDocument: "after",
+            runValidators: true
+        });
         console.log("user", user);
         res.send("User updated successfully");
     } catch (error) {
-        res.status(400).send("Something went wrong", error?.message);
+        res.status(400).send("UPDATE FAILED:" + error?.message);
     }
 })
 connectDB().then(() => {
